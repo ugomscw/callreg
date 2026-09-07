@@ -1108,20 +1108,20 @@ document.getElementById('drawer-save').addEventListener('click', async ()=>{
   try{
     if(!draft) throw new Error('Карточка не открыта — попробуйте ещё раз');
     const cleanContacts = (draft.contacts||[])
-      .map(c=>({name:(c.name||'').trim()||null, position:(c.position||'').trim()||null, phone:(c.phone||'').trim()||null, phone2:(c.phone2||'').trim()||null, email:(c.email||'').trim()||null}))
+      .map(c=>({name:String(c.name||'').trim()||null, position:String(c.position||'').trim()||null, phone:String(c.phone||'').trim()||null, phone2:String(c.phone2||'').trim()||null, email:String(c.email||'').trim()||null}))
       .filter(c=>c.name || c.position || c.phone || c.phone2 || c.email);
     const id = draftIsNew ? newId() : draftId;
     const payload = {
       id,
-      name: (draft.name||'').trim() || 'Без названия',
-      inn: (draft.inn||'').trim() || null,
-      city: (draft.city||'').trim() || null,
+      name: String(draft.name||'').trim() || 'Без названия',
+      inn: String(draft.inn||'').trim() || null,
+      city: String(draft.city||'').trim() || null,
       date: draft.date || null,
       next_date: draft.next_date || null,
       status: draft.status || null,
-      comment: (draft.comment||'').trim() || null,
-      task: (draft.task||'').trim() || null,
-      link: (draft.link||'').trim() || null,
+      comment: String(draft.comment||'').trim() || null,
+      task: String(draft.task||'').trim() || null,
+      link: String(draft.link||'').trim() || null,
       contacts: cleanContacts,
       color: draft.color || null,
       order: draft.order ?? 0,
