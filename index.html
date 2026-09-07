@@ -706,6 +706,15 @@ function nextDateInfo(d){
   if(diffDays <= 2) return {cls:'soon'};
   return {cls:'later'};
 }
+function urgencyRank(d){
+  const dt = parseRuDate(d);
+  if(!dt) return {tier:4, t:Infinity}; // нет даты след. звонка — в самый низ
+  const diffDays = Math.round((dt - TODAY) / 86400000);
+  if(diffDays < 0) return {tier:0, t:dt.getTime()};  // просрочено — выше всех, самое старое первым
+  if(diffDays === 0) return {tier:1, t:dt.getTime()}; // сегодня
+  if(diffDays <= 2) return {tier:2, t:dt.getTime()};  // в ближайшие 2 дня
+  return {tier:3, t:dt.getTime()};                    // остальные будущие даты, по возрастанию
+}
 function phoneLink(phone){
   if(!phone) return '';
   const digits = phone.replace(/[^\d+]/g,'');
@@ -750,7 +759,12 @@ function getRows(){
       return 0;
     });
   } else {
-    rows = rows.slice().sort((a,b)=>(a.order??0)-(b.order??0));
+    rows = rows.slice().sort((a,b)=>{
+      const ra = urgencyRank(a.next_date), rb = urgencyRank(b.next_date);
+      if(ra.tier !== rb.tier) return ra.tier - rb.tier;
+      if(ra.t !== rb.t) return ra.t - rb.t;
+      return (a.order??0) - (b.order??0);
+    });
   }
   return rows;
 }
