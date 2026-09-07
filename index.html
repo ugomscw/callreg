@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Реестр звонков</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -522,6 +527,8 @@ td.actions{white-space:nowrap;text-align:right;}
 .swatch.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft);}
 .swatch.none{background:var(--surface);border:1.5px dashed var(--border);color:var(--text-faint);}
 </style>
+</head>
+<body>
 
 <div class="page">
 
@@ -1096,28 +1103,29 @@ function renderContactsEditor(){
 document.getElementById('add-client').addEventListener('click', openDrawerNew);
 
 document.getElementById('drawer-save').addEventListener('click', async ()=>{
-  const cleanContacts = draft.contacts
-    .map(c=>({name:(c.name||'').trim()||null, position:(c.position||'').trim()||null, phone:(c.phone||'').trim()||null, phone2:(c.phone2||'').trim()||null, email:(c.email||'').trim()||null}))
-    .filter(c=>c.name || c.position || c.phone || c.phone2 || c.email);
-  const id = draftIsNew ? newId() : draftId;
-  const payload = {
-    id,
-    name: (draft.name||'').trim() || 'Без названия',
-    inn: (draft.inn||'').trim() || null,
-    city: (draft.city||'').trim() || null,
-    date: draft.date || null,
-    next_date: draft.next_date || null,
-    status: draft.status || null,
-    comment: (draft.comment||'').trim() || null,
-    task: (draft.task||'').trim() || null,
-    link: (draft.link||'').trim() || null,
-    contacts: cleanContacts,
-    color: draft.color || null,
-    order: draft.order ?? 0,
-  };
   const saveBtn = document.getElementById('drawer-save');
   saveBtn.disabled = true; saveBtn.textContent = 'Сохранение…';
   try{
+    if(!draft) throw new Error('Карточка не открыта — попробуйте ещё раз');
+    const cleanContacts = (draft.contacts||[])
+      .map(c=>({name:(c.name||'').trim()||null, position:(c.position||'').trim()||null, phone:(c.phone||'').trim()||null, phone2:(c.phone2||'').trim()||null, email:(c.email||'').trim()||null}))
+      .filter(c=>c.name || c.position || c.phone || c.phone2 || c.email);
+    const id = draftIsNew ? newId() : draftId;
+    const payload = {
+      id,
+      name: (draft.name||'').trim() || 'Без названия',
+      inn: (draft.inn||'').trim() || null,
+      city: (draft.city||'').trim() || null,
+      date: draft.date || null,
+      next_date: draft.next_date || null,
+      status: draft.status || null,
+      comment: (draft.comment||'').trim() || null,
+      task: (draft.task||'').trim() || null,
+      link: (draft.link||'').trim() || null,
+      contacts: cleanContacts,
+      color: draft.color || null,
+      order: draft.order ?? 0,
+    };
     await apiUpsert(payload);
     const idx = ALL.findIndex(r=>r.id===id);
     if(idx === -1) ALL.push(payload); else ALL[idx] = payload;
@@ -1194,3 +1202,5 @@ async function boot(){
 renderAll();
 boot();
 </script>
+</body>
+</html>
