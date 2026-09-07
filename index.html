@@ -385,7 +385,7 @@ textarea.inline-edit{
 textarea.inline-edit::placeholder{color:var(--text-faint);}
 textarea.inline-edit:hover{border-color:var(--border);}
 textarea.inline-edit:focus{border-color:var(--accent);background:var(--surface);outline:none;}
-input.inline-edit-name{
+textarea.inline-edit-name{
   display:block;
   width:100%;
   min-width:150px;
@@ -396,12 +396,17 @@ input.inline-edit-name{
   font-family:inherit;
   font-size:12.8px;
   font-weight:600;
+  line-height:1.35;
   padding:4px 6px;
   margin:-4px -6px 0;
+  resize:none;
+  overflow:hidden;
+  white-space:normal;
+  overflow-wrap:break-word;
 }
-input.inline-edit-name::placeholder{color:var(--text-faint);font-weight:400;}
-input.inline-edit-name:hover{border-color:var(--border);}
-input.inline-edit-name:focus{border-color:var(--accent);background:var(--surface);outline:none;}
+textarea.inline-edit-name::placeholder{color:var(--text-faint);font-weight:400;}
+textarea.inline-edit-name:hover{border-color:var(--border);}
+textarea.inline-edit-name:focus{border-color:var(--accent);background:var(--surface);outline:none;}
 td.date{white-space:nowrap;color:var(--text-muted);}
 td.link a{color:var(--accent);text-decoration:none;font-size:12px;white-space:nowrap;font-weight:600;}
 td.link a:hover{text-decoration:underline;}
@@ -901,7 +906,7 @@ function renderTable(){
         <input type="date" class="next-date-input" data-action="date" data-id="${r.id}" value="${ruToIso(r.date)}">
       </td>
       <td class="name">
-        <input type="text" class="inline-edit inline-edit-name" data-action="name" data-id="${r.id}" value="${escapeHtml(r.name||'')}" placeholder="Без названия">
+        <textarea class="inline-edit inline-edit-name" data-action="name" data-id="${r.id}" placeholder="Без названия" rows="1">${escapeHtml(r.name||'')}</textarea>
         ${r.inn?`<span class="inn">${escapeHtml(r.inn)}</span>`:''}${r.city?`<span class="city">${escapeHtml(r.city)}</span>`:''}
       </td>
       <td class="contact">${contactsHtml(r.contacts)}</td>
@@ -923,7 +928,21 @@ function renderTable(){
       </td>
     </tr>`;
   }).join('');
+  autoGrowNameFields();
 }
+
+function autoGrowNameFields(){
+  tbody.querySelectorAll('textarea.inline-edit-name').forEach(t=>{
+    t.style.height = 'auto';
+    t.style.height = t.scrollHeight + 'px';
+  });
+}
+tbody.addEventListener('input', e=>{
+  if(e.target.classList && e.target.classList.contains('inline-edit-name')){
+    e.target.style.height = 'auto';
+    e.target.style.height = e.target.scrollHeight + 'px';
+  }
+});
 
 tbody.addEventListener('change', e=>{
   const el = e.target;
