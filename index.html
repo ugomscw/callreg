@@ -184,10 +184,14 @@ button{font-family:inherit;}
 
 /* dashboard */
 .dash-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.dash-controls input[type="month"]{
-  border:1px solid var(--border);border-radius:8px;padding:8px 12px;
-  background:var(--surface);color:var(--text);font-family:inherit;font-size:13.5px;color-scheme:light dark;
+.dash-controls select{
+  border:1px solid var(--border);border-radius:8px;padding:8px 34px 8px 12px;
+  background:var(--surface);color:var(--text);font-family:inherit;font-size:13.5px;font-weight:600;
+  cursor:pointer;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238992a1' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
 }
+.dash-controls select:hover{border-color:var(--accent);}
 .dash-hint{font-size:12px;color:var(--text-faint);}
 .dash-chart-card{
   border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);
@@ -327,6 +331,13 @@ button{font-family:inherit;}
   color:var(--text-faint);
   padding:0 2px;
 }
+.count-line-link{
+  font-size:12px;
+  color:var(--text-faint);
+  text-decoration:none;
+  font-family:inherit;
+}
+.count-line-link:hover{color:var(--accent);text-decoration:underline;}
 
 /* table */
 .table-wrap{
@@ -401,6 +412,8 @@ td.contact{max-width:220px;}
 .contact-block .cemail a{color:var(--text-faint);text-decoration:none;}
 .contact-block .cemail a:hover{color:var(--accent);text-decoration:underline;}
 td.comment{max-width:230px;padding:5px 6px;}
+td.dash-comment, td.dash-task{max-width:320px;white-space:pre-line;color:var(--text-muted);}
+.dash-row-date{color:var(--text-faint);font-size:10.5px;}
 td.task{max-width:210px;padding:5px 6px;}
 textarea.inline-edit{
   display:block;
@@ -619,11 +632,10 @@ td.actions{white-space:nowrap;text-align:right;}
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="search" type="text" placeholder="Поиск по клиенту, ИНН, городу, контакту, телефону…">
       </div>
-      <button class="btn ghost" id="export-csv">⬇️ Экспорт CSV</button>
       <button class="btn primary" id="add-client">+ Добавить клиента</button>
     </div>
 
-    <p class="count-line"><span id="count-line"></span></p>
+    <p class="count-line"><span id="count-line"></span><a href="#" id="export-csv" class="count-line-link">Экспорт в CSV</a></p>
 
     <div class="table-wrap">
       <table>
@@ -651,7 +663,7 @@ td.actions{white-space:nowrap;text-align:right;}
   <div id="view-dashboard" hidden>
 
     <div class="dash-controls">
-      <input type="month" id="dash-month">
+      <select id="dash-month"></select>
       <span class="dash-hint">Клик по столбику — список звонков за этот день</span>
     </div>
 
@@ -661,10 +673,10 @@ td.actions{white-space:nowrap;text-align:right;}
       <div class="dash-chart-wrap" id="dash-chart-wrap"></div>
     </div>
 
-    <div id="dash-day-panel" hidden>
+    <div id="dash-day-panel">
       <div class="dash-day-head">
         <h2 id="dash-day-title"></h2>
-        <button class="icon-btn" id="dash-day-close" aria-label="Закрыть">✕</button>
+        <button class="btn ghost" id="dash-day-close">Показать весь месяц</button>
       </div>
       <div class="table-wrap">
         <table>
@@ -672,9 +684,11 @@ td.actions{white-space:nowrap;text-align:right;}
             <tr>
               <th>🕐 Время</th>
               <th>🏢 Клиент</th>
+              <th>📞 Контакт</th>
               <th>🚦 Статус</th>
               <th>💬 Комментарий</th>
               <th>📝 Задача</th>
+              <th>🔗 Bitrix24</th>
             </tr>
           </thead>
           <tbody id="dash-day-tbody"></tbody>
@@ -1111,6 +1125,15 @@ const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','
 function currentMonthKey(){
   return `${TODAY.getFullYear()}-${String(TODAY.getMonth()+1).padStart(2,'0')}`;
 }
+function populateMonthOptions(){
+  const opts = [];
+  for(let i=11; i>=0; i--){
+    const d = new Date(TODAY.getFullYear(), TODAY.getMonth()-i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    opts.push(`<option value="${key}">${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}</option>`);
+  }
+  dashMonthInput.innerHTML = opts.join('');
+}
 function daysInMonth(year, month1based){
   return new Date(year, month1based, 0).getDate();
 }
@@ -1129,6 +1152,7 @@ function fmtTime(ts){
 }
 
 const dashMonthInput = document.getElementById('dash-month');
+populateMonthOptions();
 dashMonthInput.addEventListener('change', e=>{
   dashMonth = e.target.value || currentMonthKey();
   dashSelectedDay = null;
@@ -1136,8 +1160,8 @@ dashMonthInput.addEventListener('change', e=>{
 });
 document.getElementById('dash-day-close').addEventListener('click', ()=>{
   dashSelectedDay = null;
-  document.getElementById('dash-day-panel').hidden = true;
   renderDashChart(); // снять выделение со столбика
+  renderDashDayPanel(null);
 });
 
 function renderDashboard(){
@@ -1145,7 +1169,7 @@ function renderDashboard(){
   dashMonthInput.value = dashMonth;
   renderDashSummary();
   renderDashChart();
-  if(dashSelectedDay) renderDashDayPanel(dashSelectedDay);
+  renderDashDayPanel(dashSelectedDay);
 }
 
 function monthEntries(){
@@ -1251,7 +1275,8 @@ function renderDashChart(){
   wrap.querySelectorAll('.dash-bar-group').forEach(g=>{
     g.addEventListener('click', ()=>{
       const d = +g.dataset.day;
-      dashSelectedDay = `${String(d).padStart(2,'0')}.${String(m).padStart(2,'0')}.${y}`;
+      const key = `${String(d).padStart(2,'0')}.${String(m).padStart(2,'0')}.${y}`;
+      dashSelectedDay = (dashSelectedDay === key) ? null : key;
       renderDashChart();
       renderDashDayPanel(dashSelectedDay);
     });
@@ -1259,26 +1284,37 @@ function renderDashChart(){
 }
 
 function renderDashDayPanel(dayStr){
-  const panel = document.getElementById('dash-day-panel');
-  panel.hidden = false;
-  document.getElementById('dash-day-title').textContent = `Звонки за ${dayStr}`;
-  const entries = HISTORY.filter(h=>h.call_date === dayStr)
-    .slice()
-    .sort((a,b)=> new Date(b.ts) - new Date(a.ts));
+  const closeBtn = document.getElementById('dash-day-close');
+  let entries;
+  if(dayStr){
+    document.getElementById('dash-day-title').textContent = `Звонки за ${dayStr}`;
+    closeBtn.hidden = false;
+    entries = HISTORY.filter(h=>h.call_date === dayStr);
+  } else {
+    const [y, m] = dashMonth.split('-').map(Number);
+    document.getElementById('dash-day-title').textContent = `Все звонки за ${MONTH_NAMES[m-1].toLowerCase()} ${y}`;
+    closeBtn.hidden = true;
+    entries = monthEntries();
+  }
+  entries = entries.slice().sort((a,b)=> new Date(b.ts) - new Date(a.ts));
   const tbodyEl = document.getElementById('dash-day-tbody');
   if(entries.length === 0){
-    tbodyEl.innerHTML = `<tr><td colspan="5"><div class="empty-state">Нет записей за этот день</div></td></tr>`;
+    tbodyEl.innerHTML = `<tr><td colspan="7"><div class="empty-state">Нет записей</div></td></tr>`;
     return;
   }
-  tbodyEl.innerHTML = entries.map(h=>`
-    <tr>
-      <td class="date mono">${fmtTime(h.ts)}</td>
+  tbodyEl.innerHTML = entries.map(h=>{
+    const client = ALL.find(c=>c.id===h.client_id);
+    const link = client && client.link;
+    return `<tr>
+      <td class="date mono">${fmtTime(h.ts)}${!dayStr?`<br><span class="dash-row-date">${escapeHtml(h.call_date||'')}</span>`:''}</td>
       <td class="name">${escapeHtml(h.client_name||'—')}</td>
+      <td>${h.contact ? escapeHtml(h.contact) : '<span class="empty-cell">—</span>'}</td>
       <td>${h.status ? `<span class="badge b-${toneOfStatus(h.status)}"><span class="dot ${toneOfStatus(h.status)}"></span>${escapeHtml(h.status)}</span>` : '<span class="empty-cell">—</span>'}</td>
-      <td class="comment">${h.comment?escapeHtml(h.comment):'<span class="empty-cell">—</span>'}</td>
-      <td class="task">${h.task?escapeHtml(h.task):'<span class="empty-cell">—</span>'}</td>
-    </tr>
-  `).join('');
+      <td class="dash-comment">${h.comment?escapeHtml(h.comment):'<span class="empty-cell">—</span>'}</td>
+      <td class="dash-task">${h.task?escapeHtml(h.task):'<span class="empty-cell">—</span>'}</td>
+      <td class="link">${link?`<a href="${escapeHtml(link)}" target="_blank" rel="noopener">Открыть →</a>`:'<span class="empty-cell">—</span>'}</td>
+    </tr>`;
+  }).join('');
 }
 
 /* ---------- drawer / edit form ---------- */
@@ -1355,6 +1391,14 @@ function renderDrawer(){
     </div>
 
     <div class="field">
+      <label>📞 С кем разговаривали (для журнала звонков)</label>
+      <select id="f-contact">
+        <option value="">— не указано —</option>
+        ${(draft.contacts||[]).filter(c=>c.name).map(c=>`<option value="${escapeHtml(c.name)}" ${draft.contact===c.name?'selected':''}>${escapeHtml(c.name)}${c.position?' — '+escapeHtml(c.position):''}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="field">
       <label>🎨 Цвет строки</label>
       <div class="color-swatches" id="color-swatches"></div>
     </div>
@@ -1387,6 +1431,7 @@ function renderDrawer(){
   document.getElementById('f-date').addEventListener('input', e=>draft.date = isoToRu(e.target.value));
   document.getElementById('f-next-date').addEventListener('input', e=>draft.next_date = isoToRu(e.target.value));
   document.getElementById('f-status').addEventListener('change', e=>draft.status = e.target.value || null);
+  document.getElementById('f-contact').addEventListener('change', e=>draft.contact = e.target.value || null);
   document.getElementById('f-comment').addEventListener('input', e=>draft.comment = e.target.value);
   document.getElementById('f-task').addEventListener('input', e=>draft.task = e.target.value);
   document.getElementById('f-link').addEventListener('input', e=>draft.link = e.target.value);
@@ -1491,7 +1536,7 @@ function exportCsv(){
   a.remove();
   URL.revokeObjectURL(url);
 }
-document.getElementById('export-csv').addEventListener('click', exportCsv);
+document.getElementById('export-csv').addEventListener('click', e=>{ e.preventDefault(); exportCsv(); });
 
 document.getElementById('drawer-save').addEventListener('click', async ()=>{
   const saveBtn = document.getElementById('drawer-save');
@@ -1515,6 +1560,7 @@ document.getElementById('drawer-save').addEventListener('click', async ()=>{
       link: String(draft.link||'').trim() || null,
       contacts: cleanContacts,
       color: draft.color || null,
+      contact: draft.contact || null,
       order: draft.order ?? 0,
     };
     await apiUpsert(payload);
