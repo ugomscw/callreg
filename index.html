@@ -174,6 +174,41 @@ button{font-family:inherit;}
 .sync-dot.off{background:var(--danger);}
 .sync-dot.pending{background:var(--warning);}
 
+/* view switch */
+.view-switch{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:9px;border:1px solid var(--border);width:fit-content;}
+.view-tab{border:none;background:transparent;color:var(--text-muted);font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;border-radius:6px;cursor:pointer;}
+.view-tab:hover{color:var(--text);}
+.view-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow);}
+#view-registry, #view-dashboard{display:flex;flex-direction:column;gap:20px;}
+#view-registry[hidden], #view-dashboard[hidden]{display:none;}
+
+/* dashboard */
+.dash-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.dash-controls input[type="month"]{
+  border:1px solid var(--border);border-radius:8px;padding:8px 12px;
+  background:var(--surface);color:var(--text);font-family:inherit;font-size:13.5px;color-scheme:light dark;
+}
+.dash-hint{font-size:12px;color:var(--text-faint);}
+.dash-chart-card{
+  border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);
+  box-shadow:var(--shadow);padding:20px;overflow-x:auto;
+}
+.dash-chart-wrap{min-width:640px;}
+.dash-bar-group{cursor:pointer;}
+.dash-bar-group:hover rect.dash-bar-seg{filter:brightness(0.9);}
+.dash-bar-group.selected rect.dash-bar-day-bg{fill:var(--accent-soft);}
+.dash-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:11.5px;color:var(--text-muted);}
+.dash-legend span{display:inline-flex;align-items:center;gap:5px;}
+.dash-legend .sw{width:9px;height:9px;border-radius:2px;display:inline-block;}
+.dash-empty{padding:40px 20px;text-align:center;color:var(--text-faint);font-size:13px;}
+
+#dash-day-panel{
+  border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.dash-day-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.dash-day-head h2{font-size:15px;margin:0;font-weight:700;}
+
 /* stat tiles */
 .stats{
   display:grid;
@@ -434,6 +469,14 @@ td.actions{white-space:nowrap;text-align:right;}
 .status-select.s-danger{background-color:var(--danger-soft);color:var(--danger);}
 .status-select.s-neutral{background-color:var(--neutral-soft);color:var(--neutral);}
 
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;}
+.badge .dot{width:6px;height:6px;}
+.badge.b-success{background:var(--success-soft);color:var(--success);}
+.badge.b-info{background:var(--info-soft);color:var(--info);}
+.badge.b-warning{background:var(--warning-soft);color:var(--warning);}
+.badge.b-danger{background:var(--danger-soft);color:var(--danger);}
+.badge.b-neutral{background:var(--neutral-soft);color:var(--neutral);}
+
 .next-date-input{
   border:1px solid var(--border);
   border-radius:6px;
@@ -562,38 +605,84 @@ td.actions{white-space:nowrap;text-align:right;}
     <div class="meta"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Подключение…</span></div>
   </header>
 
-  <div class="stats" id="stats"></div>
+  <div class="view-switch">
+    <button class="view-tab active" id="tab-registry" type="button">📋 Реестр</button>
+    <button class="view-tab" id="tab-dashboard" type="button">📊 Дашборд</button>
+  </div>
 
-  <div class="controls">
-    <div class="search">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="search" type="text" placeholder="Поиск по клиенту, ИНН, городу, контакту, телефону…">
+  <div id="view-registry">
+
+    <div class="stats" id="stats"></div>
+
+    <div class="controls">
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="search" type="text" placeholder="Поиск по клиенту, ИНН, городу, контакту, телефону…">
+      </div>
+      <button class="btn ghost" id="export-csv">⬇️ Экспорт CSV</button>
+      <button class="btn primary" id="add-client">+ Добавить клиента</button>
     </div>
-    <button class="btn primary" id="add-client">+ Добавить клиента</button>
+
+    <p class="count-line"><span id="count-line"></span></p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-key="date">📅 Дата звонка<span class="arrow"></span></th>
+            <th data-key="name">🏢 Клиент<span class="arrow"></span></th>
+            <th class="no-sort">👤 Контакт</th>
+            <th data-key="status">🚦 Статус<span class="arrow"></span></th>
+            <th data-key="next_date">⏰ След. звонок<span class="arrow"></span></th>
+            <th class="no-sort">💬 Комментарий</th>
+            <th class="no-sort">📝 Задача</th>
+            <th class="no-sort">🔗 Bitrix24</th>
+            <th class="no-sort"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <p class="footer-note" id="footer-note">Загрузка…</p>
+
   </div>
 
-  <p class="count-line"><span id="count-line"></span></p>
+  <div id="view-dashboard" hidden>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th data-key="date">📅 Дата звонка<span class="arrow"></span></th>
-          <th data-key="name">🏢 Клиент<span class="arrow"></span></th>
-          <th class="no-sort">👤 Контакт</th>
-          <th data-key="status">🚦 Статус<span class="arrow"></span></th>
-          <th data-key="next_date">⏰ След. звонок<span class="arrow"></span></th>
-          <th class="no-sort">💬 Комментарий</th>
-          <th class="no-sort">📝 Задача</th>
-          <th class="no-sort">🔗 Bitrix24</th>
-          <th class="no-sort"></th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
+    <div class="dash-controls">
+      <input type="month" id="dash-month">
+      <span class="dash-hint">Клик по столбику — список звонков за этот день</span>
+    </div>
+
+    <div class="stats" id="dash-summary"></div>
+
+    <div class="dash-chart-card">
+      <div class="dash-chart-wrap" id="dash-chart-wrap"></div>
+    </div>
+
+    <div id="dash-day-panel" hidden>
+      <div class="dash-day-head">
+        <h2 id="dash-day-title"></h2>
+        <button class="icon-btn" id="dash-day-close" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>🕐 Время</th>
+              <th>🏢 Клиент</th>
+              <th>🚦 Статус</th>
+              <th>💬 Комментарий</th>
+              <th>📝 Задача</th>
+            </tr>
+          </thead>
+          <tbody id="dash-day-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
-
-  <p class="footer-note" id="footer-note">Загрузка…</p>
 
 </div>
 
@@ -674,6 +763,7 @@ TODAY.setHours(0,0,0,0);
 const API_URL = 'https://script.google.com/macros/s/AKfycbyJ3Sm1vJifyX7ErxaitEG2XnRMRSAvUN5EHSRLs2oAPpk85ke4LMNZYShluKVxazpYpw/exec'; // из Deploy → Web app в Apps Script
 
 let ALL = [];
+let HISTORY = [];
 let activeTab = '__all';
 let sortKey = null;
 let sortDir = 1;
@@ -681,6 +771,9 @@ let query = '';
 let draft = null; // working copy while drawer open
 let draftId = null;
 let draftIsNew = false;
+let currentView = 'registry';
+let dashMonth = null;   // 'YYYY-MM'
+let dashSelectedDay = null; // 'dd.mm.yyyy'
 
 const statsEl = document.getElementById('stats');
 const tbody = document.getElementById('tbody');
@@ -689,6 +782,17 @@ const footerNote = document.getElementById('footer-note');
 const searchInput = document.getElementById('search');
 const syncDot = document.getElementById('sync-dot');
 const syncLabel = document.getElementById('sync-label');
+
+function switchView(v){
+  currentView = v;
+  document.getElementById('view-registry').hidden = v !== 'registry';
+  document.getElementById('view-dashboard').hidden = v !== 'dashboard';
+  document.getElementById('tab-registry').classList.toggle('active', v === 'registry');
+  document.getElementById('tab-dashboard').classList.toggle('active', v === 'dashboard');
+  if(v === 'dashboard') renderDashboard();
+}
+document.getElementById('tab-registry').addEventListener('click', ()=>switchView('registry'));
+document.getElementById('tab-dashboard').addEventListener('click', ()=>switchView('dashboard'));
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -837,7 +941,7 @@ async function apiList(){
   const json = await res.json();
   checkAuthResponse_(json);
   if(!json.ok) throw new Error(json.error || 'list_failed');
-  return json.clients;
+  return {clients: json.clients, history: json.history || []};
 }
 async function apiUpsert(obj){
   const res = await fetch(API_URL, {method:'POST', body: JSON.stringify({action:'upsert', data: obj, key: getAuthKey()})});
@@ -997,6 +1101,184 @@ searchInput.addEventListener('input', e=>{ query = e.target.value; renderAll(); 
 function renderAll(){
   renderStats();
   renderTable();
+}
+
+/* ---------- дашборд по дням ---------- */
+
+const TONE_VAR = {success:'--success', warning:'--warning', info:'--info', danger:'--danger', neutral:'--neutral'};
+const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+function currentMonthKey(){
+  return `${TODAY.getFullYear()}-${String(TODAY.getMonth()+1).padStart(2,'0')}`;
+}
+function daysInMonth(year, month1based){
+  return new Date(year, month1based, 0).getDate();
+}
+function historyDateInfo(h){
+  const dt = parseRuDate(h.call_date);
+  return dt;
+}
+function toneOfStatus(status){
+  return (STATUS_META[status] || {tone:'neutral'}).tone;
+}
+function fmtTime(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  if(isNaN(d)) return '';
+  return d.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+}
+
+const dashMonthInput = document.getElementById('dash-month');
+dashMonthInput.addEventListener('change', e=>{
+  dashMonth = e.target.value || currentMonthKey();
+  dashSelectedDay = null;
+  renderDashboard();
+});
+document.getElementById('dash-day-close').addEventListener('click', ()=>{
+  dashSelectedDay = null;
+  document.getElementById('dash-day-panel').hidden = true;
+  renderDashChart(); // снять выделение со столбика
+});
+
+function renderDashboard(){
+  if(!dashMonth) dashMonth = currentMonthKey();
+  dashMonthInput.value = dashMonth;
+  renderDashSummary();
+  renderDashChart();
+  if(dashSelectedDay) renderDashDayPanel(dashSelectedDay);
+}
+
+function monthEntries(){
+  const [y, m] = dashMonth.split('-').map(Number);
+  return HISTORY.filter(h=>{
+    const dt = historyDateInfo(h);
+    return dt && dt.getFullYear() === y && (dt.getMonth()+1) === m;
+  });
+}
+
+function renderDashSummary(){
+  const entries = monthEntries();
+  const el = document.getElementById('dash-summary');
+  const byStatus = {};
+  STATUS_LIST.forEach(s=>byStatus[s]=0);
+  let noStatus = 0;
+  entries.forEach(h=>{
+    if(h.status && byStatus.hasOwnProperty(h.status)) byStatus[h.status]++;
+    else noStatus++;
+  });
+  const daysWithCalls = new Set(entries.map(h=>h.call_date)).size;
+  const tiles = [
+    {label:'Звонков за месяц', n:entries.length, dot:'total'},
+    {label:'Дней со звонками', n:daysWithCalls, dot:'total'},
+    ...STATUS_LIST.map(s=>({label:s, n:byStatus[s], dot:toneOfStatus(s)})),
+  ];
+  el.innerHTML = tiles.map(t=>`
+    <div class="stat" style="cursor:default;">
+      <span class="n">${t.n}</span>
+      <span class="label"><span class="dot ${t.dot}"></span>${t.label}</span>
+    </div>
+  `).join('');
+}
+
+function renderDashChart(){
+  const wrap = document.getElementById('dash-chart-wrap');
+  const entries = monthEntries();
+  const [y, m] = dashMonth.split('-').map(Number);
+  const nDays = daysInMonth(y, m);
+
+  if(entries.length === 0){
+    wrap.innerHTML = `<div class="dash-empty">За ${MONTH_NAMES[m-1].toLowerCase()} ${y} звонков ещё не зафиксировано</div>`;
+    return;
+  }
+
+  // группируем: day -> {status: count}
+  const perDay = {};
+  for(let d=1; d<=nDays; d++) perDay[d] = {};
+  entries.forEach(h=>{
+    const dt = historyDateInfo(h);
+    if(!dt) return;
+    const day = dt.getDate();
+    const key = (h.status && STATUS_LIST.includes(h.status)) ? h.status : '__none';
+    perDay[day][key] = (perDay[day][key]||0) + 1;
+  });
+  let maxTotal = 1;
+  Object.values(perDay).forEach(counts=>{
+    const total = Object.values(counts).reduce((a,b)=>a+b,0);
+    if(total > maxTotal) maxTotal = total;
+  });
+
+  const W = Math.max(640, nDays * 26);
+  const H = 220;
+  const padTop = 10, padBottom = 26, padLeft = 8, padRight = 8;
+  const chartH = H - padTop - padBottom;
+  const barW = (W - padLeft - padRight) / nDays;
+  const order = [...STATUS_LIST, '__none'];
+
+  let bars = '';
+  for(let d=1; d<=nDays; d++){
+    const counts = perDay[d];
+    const total = Object.values(counts).reduce((a,b)=>a+b,0);
+    const x = padLeft + (d-1)*barW;
+    const isSelected = dashSelectedDay === `${String(d).padStart(2,'0')}.${String(m).padStart(2,'0')}.${y}`;
+    let yCursor = padTop + chartH;
+    let segs = `<rect class="dash-bar-day-bg" x="${x+1}" y="${padTop}" width="${barW-2}" height="${chartH}" fill="${isSelected?'var(--accent-soft)':'transparent'}" rx="3"></rect>`;
+    order.forEach(key=>{
+      const c = counts[key];
+      if(!c) return;
+      const segH = (c/maxTotal) * chartH;
+      yCursor -= segH;
+      const fillVar = key === '__none' ? 'var(--text-faint)' : `var(${TONE_VAR[toneOfStatus(key)]})`;
+      segs += `<rect class="dash-bar-seg" x="${x+3}" y="${yCursor}" width="${barW-6}" height="${Math.max(segH,1)}" fill="${fillVar}" rx="2"></rect>`;
+    });
+    const label = (d===1 || d%5===0 || d===nDays) ? d : '';
+    bars += `<g class="dash-bar-group${isSelected?' selected':''}" data-day="${d}">
+      ${segs}
+      <text x="${x+barW/2}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--text-faint)">${label}</text>
+      <title>${d}.${String(m).padStart(2,'0')}.${y} — звонков: ${total}</title>
+    </g>`;
+  }
+
+  wrap.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="display:block;">
+      ${bars}
+    </svg>
+    <div class="dash-legend">
+      ${STATUS_LIST.map(s=>`<span><span class="sw" style="background:var(${TONE_VAR[toneOfStatus(s)]})"></span>${s}</span>`).join('')}
+      <span><span class="sw" style="background:var(--text-faint)"></span>Без статуса</span>
+    </div>
+  `;
+
+  wrap.querySelectorAll('.dash-bar-group').forEach(g=>{
+    g.addEventListener('click', ()=>{
+      const d = +g.dataset.day;
+      dashSelectedDay = `${String(d).padStart(2,'0')}.${String(m).padStart(2,'0')}.${y}`;
+      renderDashChart();
+      renderDashDayPanel(dashSelectedDay);
+    });
+  });
+}
+
+function renderDashDayPanel(dayStr){
+  const panel = document.getElementById('dash-day-panel');
+  panel.hidden = false;
+  document.getElementById('dash-day-title').textContent = `Звонки за ${dayStr}`;
+  const entries = HISTORY.filter(h=>h.call_date === dayStr)
+    .slice()
+    .sort((a,b)=> new Date(b.ts) - new Date(a.ts));
+  const tbodyEl = document.getElementById('dash-day-tbody');
+  if(entries.length === 0){
+    tbodyEl.innerHTML = `<tr><td colspan="5"><div class="empty-state">Нет записей за этот день</div></td></tr>`;
+    return;
+  }
+  tbodyEl.innerHTML = entries.map(h=>`
+    <tr>
+      <td class="date mono">${fmtTime(h.ts)}</td>
+      <td class="name">${escapeHtml(h.client_name||'—')}</td>
+      <td>${h.status ? `<span class="badge b-${toneOfStatus(h.status)}"><span class="dot ${toneOfStatus(h.status)}"></span>${escapeHtml(h.status)}</span>` : '<span class="empty-cell">—</span>'}</td>
+      <td class="comment">${h.comment?escapeHtml(h.comment):'<span class="empty-cell">—</span>'}</td>
+      <td class="task">${h.task?escapeHtml(h.task):'<span class="empty-cell">—</span>'}</td>
+    </tr>
+  `).join('');
 }
 
 /* ---------- drawer / edit form ---------- */
@@ -1179,6 +1461,38 @@ function renderContactsEditor(){
 
 document.getElementById('add-client').addEventListener('click', openDrawerNew);
 
+function csvEscape(v){
+  const s = (v===null || v===undefined) ? '' : String(v);
+  if(/[";\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+function contactsToText(contacts){
+  if(!contacts || !contacts.length) return '';
+  return contacts.map(c=>[c.name,c.position,c.phone,c.phone2,c.email].filter(Boolean).join(', ')).join(' / ');
+}
+function exportCsv(){
+  const rows = getRows();
+  const headers = ['Дата звонка','Клиент','ИНН','Город','Контакты','Статус','Дата след. звонка','Комментарий','Задача','Bitrix24'];
+  const lines = [headers.join(';')];
+  rows.forEach(r=>{
+    lines.push([
+      r.date||'', r.name||'', r.inn||'', r.city||'', contactsToText(r.contacts),
+      r.status||'Новый', r.next_date||'', r.comment||'', r.task||'', r.link||''
+    ].map(csvEscape).join(';'));
+  });
+  const csv = '\uFEFF' + lines.join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `реестр-звонков-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+document.getElementById('export-csv').addEventListener('click', exportCsv);
+
 document.getElementById('drawer-save').addEventListener('click', async ()=>{
   const saveBtn = document.getElementById('drawer-save');
   saveBtn.disabled = true; saveBtn.textContent = 'Сохранение…';
@@ -1233,11 +1547,14 @@ function setSync(state, label){
 async function refresh(silent){
   if(!silent) setSync('pending', 'Загрузка…');
   try{
-    ALL = await apiList();
+    const data = await apiList();
+    ALL = data.clients;
+    HISTORY = data.history;
     hideAuthGate();
     setSync('on', 'Синхронизировано');
     footerNote.textContent = `${ALL.length} клиентов в базе · данные хранятся в Google Таблице`;
     renderAll();
+    if(currentView === 'dashboard') renderDashboard();
   }catch(e){
     console.error(e);
     if(e && e.message === 'unauthorized'){
