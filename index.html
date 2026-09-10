@@ -404,6 +404,15 @@ td.contact{max-width:220px;}
 .contact-block{margin-bottom:8px;}
 .contact-block:last-child{margin-bottom:0;}
 .contact-block .cname{font-weight:600;display:block;}
+.contact-select{
+  display:block;width:100%;
+  border:1px solid transparent;border-radius:6px;
+  background:transparent;color:var(--text);
+  font-family:inherit;font-size:12.8px;font-weight:600;
+  padding:2px 4px;margin:-2px -4px 0;cursor:pointer;
+}
+.contact-select:hover{border-color:var(--border);}
+.contact-select:focus{border-color:var(--accent);background:var(--surface);outline:none;}
 .contact-block .cpos{display:block;color:var(--text-faint);font-size:11.3px;margin-top:1px;}
 .contact-block .cphone{display:block;margin-top:2px;font-size:12px;}
 .contact-block .cphone a{color:var(--accent);text-decoration:none;}
@@ -877,17 +886,29 @@ function formatPhoneRu(raw){
   }
   return trimmed;
 }
-function contactsHtml(contacts){
-  if(!contacts || contacts.length===0) return '<span class="empty-cell">—</span>';
-  return contacts.map(c=>`
+function effectiveContact(r){
+  const contacts = r.contacts || [];
+  if(!contacts.length) return null;
+  return contacts.find(c=>c.name === r.contact) || contacts[0];
+}
+function contactCellHtml(r){
+  const contacts = r.contacts || [];
+  if(!contacts.length) return '<span class="empty-cell">—</span>';
+  const current = effectiveContact(r);
+  const picker = contacts.length > 1
+    ? `<select class="contact-select" data-action="contact" data-id="${r.id}">
+        ${contacts.map(c=>`<option value="${escapeHtml(c.name||'')}" ${current && current.name===c.name?'selected':''}>${escapeHtml(c.name||'Без имени')}</option>`).join('')}
+      </select>`
+    : `<span class="cname">${escapeHtml(current.name||'Без имени')}</span>`;
+  return `
     <div class="contact-block">
-      ${c.name?`<span class="cname">${escapeHtml(c.name)}</span>`:''}
-      ${c.position?`<span class="cpos">${escapeHtml(c.position)}</span>`:''}
-      ${c.phone?`<span class="cphone mono">${phoneLink(c.phone)}</span>`:''}
-      ${c.phone2?`<span class="cphone mono">${phoneLink(c.phone2)}</span>`:''}
-      ${c.email?`<span class="cemail"><a href="mailto:${escapeHtml(c.email)}">${escapeHtml(c.email)}</a></span>`:''}
+      ${picker}
+      ${current.position?`<span class="cpos">${escapeHtml(current.position)}</span>`:''}
+      ${current.phone?`<span class="cphone mono">${phoneLink(current.phone)}</span>`:''}
+      ${current.phone2?`<span class="cphone mono">${phoneLink(current.phone2)}</span>`:''}
+      ${current.email?`<span class="cemail"><a href="mailto:${escapeHtml(current.email)}">${escapeHtml(current.email)}</a></span>`:''}
     </div>
-  `).join('');
+  `;
 }
 
 function matchesTab(r){
@@ -982,6 +1003,13 @@ async function setDate(id, ruDate){
   renderAll();
   try{ await apiUpsert(row); }catch(e){ console.error(e); setSync('off','Ошибка сохранения'); }
 }
+async function setContact(id, name){
+  const row = ALL.find(r=>r.id===id);
+  if(!row) return;
+  row.contact = name || null;
+  renderAll();
+  try{ await apiUpsert(row); }catch(e){ console.error(e); setSync('off','Ошибка сохранения'); }
+}
 async function setStatus(id, status){
   const row = ALL.find(r=>r.id===id);
   if(!row) return;
@@ -1027,7 +1055,7 @@ function renderTable(){
         <textarea class="inline-edit inline-edit-name" data-action="name" data-id="${r.id}" placeholder="Без названия" rows="1">${escapeHtml(r.name||'')}</textarea>
         ${r.inn?`<span class="inn">${escapeHtml(r.inn)}</span>`:''}${r.city?`<span class="city">${escapeHtml(r.city)}</span>`:''}
       </td>
-      <td class="contact">${contactsHtml(r.contacts)}</td>
+      <td class="contact">${contactCellHtml(r)}</td>
       <td>
         <select class="status-select s-${toneOf(status||'Новый')}" data-action="status" data-id="${r.id}">
           <option value="" ${!status?'selected':''}>— Новый —</option>
@@ -1069,6 +1097,7 @@ tbody.addEventListener('change', e=>{
   if(action === 'status') setStatus(id, el.value);
   if(action === 'next_date') setNextDate(id, isoToRu(el.value));
   if(action === 'date') setDate(id, isoToRu(el.value));
+  if(action === 'contact') setContact(id, el.value);
 });
 tbody.addEventListener('focusout', e=>{
   const el = e.target;
@@ -1391,14 +1420,6 @@ function renderDrawer(){
     </div>
 
     <div class="field">
-      <label>📞 С кем разговаривали (для журнала звонков)</label>
-      <select id="f-contact">
-        <option value="">— не указано —</option>
-        ${(draft.contacts||[]).filter(c=>c.name).map(c=>`<option value="${escapeHtml(c.name)}" ${draft.contact===c.name?'selected':''}>${escapeHtml(c.name)}${c.position?' — '+escapeHtml(c.position):''}</option>`).join('')}
-      </select>
-    </div>
-
-    <div class="field">
       <label>🎨 Цвет строки</label>
       <div class="color-swatches" id="color-swatches"></div>
     </div>
@@ -1431,7 +1452,6 @@ function renderDrawer(){
   document.getElementById('f-date').addEventListener('input', e=>draft.date = isoToRu(e.target.value));
   document.getElementById('f-next-date').addEventListener('input', e=>draft.next_date = isoToRu(e.target.value));
   document.getElementById('f-status').addEventListener('change', e=>draft.status = e.target.value || null);
-  document.getElementById('f-contact').addEventListener('change', e=>draft.contact = e.target.value || null);
   document.getElementById('f-comment').addEventListener('input', e=>draft.comment = e.target.value);
   document.getElementById('f-task').addEventListener('input', e=>draft.task = e.target.value);
   document.getElementById('f-link').addEventListener('input', e=>draft.link = e.target.value);
