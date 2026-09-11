@@ -174,6 +174,40 @@ button{font-family:inherit;}
 .sync-dot.off{background:var(--danger);}
 .sync-dot.pending{background:var(--warning);}
 
+.theme-toggle{
+  position:relative;
+  width:42px;height:22px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  padding:0;
+  margin-left:4px;
+  cursor:pointer;
+  flex:none;
+  display:inline-block;
+  transition:background .15s ease;
+}
+.theme-toggle:hover{border-color:var(--accent);}
+.theme-toggle-knob{
+  position:absolute;
+  top:1px; left:1px;
+  width:18px; height:18px;
+  border-radius:50%;
+  background:var(--surface);
+  box-shadow:var(--shadow);
+  transition:transform .18s ease;
+}
+.theme-toggle[data-state="dark"] .theme-toggle-knob{transform:translateX(20px);}
+.theme-toggle-icon{
+  position:absolute;
+  top:50%; transform:translateY(-50%);
+  font-size:10px; line-height:1;
+  pointer-events:none;
+  opacity:.7;
+}
+.theme-toggle-icon.sun{left:4px;}
+.theme-toggle-icon.moon{right:4px;}
+
 /* view switch */
 .view-switch{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:9px;border:1px solid var(--border);width:fit-content;}
 .view-tab{border:none;background:transparent;color:var(--text-muted);font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;border-radius:6px;cursor:pointer;}
@@ -406,13 +440,16 @@ td.contact{max-width:220px;}
 .contact-block .cname{font-weight:600;display:block;}
 .contact-select{
   display:block;width:100%;
+  appearance:none;-webkit-appearance:none;
   border:1px solid transparent;border-radius:6px;
-  background:transparent;color:var(--text);
+  background-color:transparent;color:var(--text);
   font-family:inherit;font-size:12.8px;font-weight:600;
-  padding:2px 4px;margin:-2px -4px 0;cursor:pointer;
+  padding:2px 20px 2px 4px;margin:-2px -4px 0;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-opacity='.75' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 4px center;background-size:8px;
 }
 .contact-select:hover{border-color:var(--border);}
-.contact-select:focus{border-color:var(--accent);background:var(--surface);outline:none;}
+.contact-select:focus{border-color:var(--accent);background-color:var(--surface);outline:none;}
 .contact-block .cpos{display:block;color:var(--text-faint);font-size:11.3px;margin-top:1px;}
 .contact-block .cphone{display:block;margin-top:2px;font-size:12px;}
 .contact-block .cphone a{color:var(--accent);text-decoration:none;}
@@ -482,9 +519,14 @@ td.actions{white-space:nowrap;text-align:right;}
   cursor:pointer;
   background-repeat:no-repeat;
   background-position:right 8px center;
-  background-size:9px;
+  background-size:8px;
+  transition:border-color .12s ease, box-shadow .12s ease;
 }
 .status-select:hover{border-color:var(--border);}
+.status-select:focus{outline:none;box-shadow:0 0 0 2px var(--accent-soft);}
+.status-select.s-success,.status-select.s-info,.status-select.s-warning,.status-select.s-danger,.status-select.s-neutral{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-opacity='.75' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
 .status-select.s-success{background-color:var(--success-soft);color:var(--success);}
 .status-select.s-info{background-color:var(--info-soft);color:var(--info);}
 .status-select.s-warning{background-color:var(--warning-soft);color:var(--warning);}
@@ -582,6 +624,16 @@ td.actions{white-space:nowrap;text-align:right;}
   color-scheme:light dark;
   width:100%;
 }
+.field select{
+  appearance:none;-webkit-appearance:none;
+  cursor:pointer;
+  padding-right:34px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238992a1' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:10px;
+}
+.field select:focus, .field input:focus, .field textarea:focus{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft);
+}
 .field textarea{resize:vertical;min-height:56px;font-family:inherit;}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
@@ -624,7 +676,14 @@ td.actions{white-space:nowrap;text-align:right;}
       <p class="eyebrow">Отдел продаж &middot; Мурадалиев М.М.</p>
       <h1>Реестр звонков по клиентам</h1>
     </div>
-    <div class="meta"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Подключение…</span></div>
+    <div class="meta">
+      <span class="sync-dot" id="sync-dot"></span><span id="sync-label">Подключение…</span>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Переключить тему">
+        <span class="theme-toggle-icon sun">☀️</span>
+        <span class="theme-toggle-knob"></span>
+        <span class="theme-toggle-icon moon">🌙</span>
+      </button>
+    </div>
   </header>
 
   <div class="view-switch">
@@ -745,6 +804,31 @@ td.actions{white-space:nowrap;text-align:right;}
 </div>
 
 <script>
+/* ---------- тема (светлая/тёмная) ---------- */
+const THEME_STORAGE = 'callRegistryTheme';
+function getStoredTheme(){
+  try{ return localStorage.getItem(THEME_STORAGE); }catch(e){ return null; }
+}
+function setStoredTheme(v){
+  try{ localStorage.setItem(THEME_STORAGE, v); }catch(e){}
+}
+function effectiveTheme(){
+  const stored = getStoredTheme();
+  if(stored === 'light' || stored === 'dark') return stored;
+  return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+}
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  const toggle = document.getElementById('theme-toggle');
+  if(toggle) toggle.dataset.state = theme;
+}
+applyTheme(effectiveTheme());
+document.getElementById('theme-toggle').addEventListener('click', ()=>{
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  setStoredTheme(next);
+  applyTheme(next);
+});
+
 const STATUS_META = {
   'Дозвонился':    {tone:'success'},
   'Не дозвонился': {tone:'danger'},
