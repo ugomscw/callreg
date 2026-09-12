@@ -39,6 +39,7 @@
   --rc-orange:#fce2cc;
   --rc-gray:#e7e9ee;
   --overlay: rgba(20,26,38,0.45);
+  --card-tint:#eef3fa;
   --shadow: 0 1px 2px rgba(20,30,50,0.06), 0 8px 24px -12px rgba(20,30,50,0.12);
   --shadow-lg: 0 20px 60px -20px rgba(20,30,50,0.35);
   --radius: 10px;
@@ -76,6 +77,7 @@
     --rc-orange:#3c2a1a;
     --rc-gray:#2a2f3a;
     --overlay: rgba(4,6,10,0.6);
+    --card-tint:#192434;
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
     --shadow-lg: 0 20px 60px -20px rgba(0,0,0,0.7);
   }
@@ -111,6 +113,7 @@
   --rc-orange:#3c2a1a;
   --rc-gray:#2a2f3a;
   --overlay: rgba(4,6,10,0.6);
+  --card-tint:#192434;
   --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
   --shadow-lg: 0 20px 60px -20px rgba(0,0,0,0.7);
 }
@@ -665,6 +668,109 @@ td.actions{white-space:nowrap;text-align:right;}
 .swatch:hover{border-color:var(--border);}
 .swatch.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft);}
 .swatch.none{background:var(--surface);border:1.5px dashed var(--border);color:var(--text-faint);}
+
+/* ---- режим обзвона ---- */
+#view-callmode{display:flex;flex-direction:column;gap:20px;}
+#view-callmode[hidden]{display:none;}
+
+.cm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.cm-head .sub{margin:0;font-size:12.5px;color:var(--text-muted);}
+.cm-tally{text-align:right;flex:none;}
+.cm-tally .n{font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;line-height:1;color:var(--text);}
+.cm-tally .n .of{color:var(--text-faint);font-size:15px;font-weight:500;}
+.cm-tally .lbl{font-size:11px;color:var(--text-faint);margin-top:3px;}
+.cm-progress-track{height:5px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;}
+.cm-progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .35s cubic-bezier(.4,0,.2,1);}
+
+.cm-workspace{display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start;}
+@media (max-width:900px){.cm-workspace{grid-template-columns:1fr;}.cm-queue-rail{order:2;}}
+
+.focus-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;}
+.fc-head{padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:14px;}
+.fc-head h2{font-size:22px;font-weight:700;margin:0 0 3px;letter-spacing:-0.01em;text-wrap:balance;}
+.fc-head .meta-line{font-size:12.5px;color:var(--text-faint);}
+.bitrix-link{flex:none;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap;padding:7px 12px;border:1px solid var(--border);border-radius:8px;align-self:flex-start;}
+.bitrix-link:hover{background:var(--accent-soft);border-color:var(--accent-soft);}
+.fc-body{padding:20px 26px;display:flex;flex-direction:column;gap:20px;}
+.fc-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 26px;border-top:1px solid var(--border);background:var(--surface-2);flex-wrap:wrap;}
+.foot-hint{font-size:11.5px;color:var(--text-faint);display:flex;align-items:center;gap:6px;}
+.kbd{font-family:"IBM Plex Mono",monospace;font-size:10px;border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--surface);color:var(--text-muted);}
+.foot-actions{display:flex;gap:8px;}
+
+.cm-contact-row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card-tint);border-radius:14px;flex-wrap:wrap;}
+.cm-avatar{width:42px;height:42px;border-radius:50%;background:var(--surface);box-shadow:inset 0 0 0 1px var(--border);display:flex;align-items:center;justify-content:center;font-size:19px;flex:none;}
+.cm-who{display:flex;flex-direction:column;gap:2px;justify-content:center;flex:1;min-width:130px;}
+.cm-who .cname{font-weight:600;font-size:14.5px;}
+.cm-who .cpos{color:var(--text-muted);font-size:12px;}
+.cm-call-group{display:flex;align-items:stretch;height:38px;border-radius:10px;overflow:hidden;background:var(--surface);box-shadow:inset 0 0 0 1px var(--border);flex:none;}
+.cm-phone-btn{display:flex;align-items:center;gap:7px;padding:0 14px;background:transparent;color:var(--accent-strong);font-family:"IBM Plex Mono",monospace;font-size:13.5px;font-weight:600;text-decoration:none;white-space:nowrap;}
+.cm-phone-btn:hover{background:var(--accent-soft);}
+.cm-phone-btn.muted{color:var(--text-faint);cursor:default;font-family:"IBM Plex Sans",sans-serif;font-weight:500;}
+.cm-phone-btn.muted:hover{background:transparent;}
+.cm-contact-switch{position:relative;display:flex;}
+.cm-switch-btn{width:34px;border:none;border-left:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;}
+.cm-switch-btn:hover{background:var(--accent-soft);color:var(--accent-strong);}
+.cm-switch-menu{position:fixed;min-width:230px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);padding:5px;display:flex;flex-direction:column;gap:1px;z-index:60;}
+.cm-switch-menu[hidden]{display:none;}
+.cm-switch-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 10px;border-radius:7px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;}
+.cm-switch-item:hover{background:var(--surface-2);}
+.cm-switch-item.active{background:var(--accent-soft);}
+.cm-switch-item .csi-name{font-size:12.8px;font-weight:600;color:var(--text);}
+.cm-switch-item.active .csi-name{color:var(--accent-strong);}
+.cm-switch-item .csi-pos{font-size:11px;color:var(--text-faint);}
+
+.cm-history{display:flex;gap:18px;flex-wrap:wrap;padding:12px 14px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;}
+.cm-history .hitem{display:flex;flex-direction:column;gap:2px;min-width:120px;}
+.cm-history .hitem .k{color:var(--text-faint);font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;}
+.cm-history .hitem .v{color:var(--text-muted);}
+.cm-task-box{border-style:solid;border-color:var(--accent-soft);background:var(--accent-soft);}
+.cm-task-box .k{color:var(--accent-strong)!important;}
+.cm-task-box .v{color:var(--text)!important;}
+
+.cm-status-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+@media (max-width:560px){.cm-status-grid{grid-template-columns:repeat(2,1fr);}}
+.cm-status-tile{position:relative;border:1.5px solid var(--border);background:var(--surface);border-radius:10px;padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;text-align:center;transition:border-color .12s ease, background .12s ease, transform .06s ease;}
+.cm-status-tile:hover{transform:translateY(-1px);}
+.cm-status-tile .key{position:absolute;top:6px;left:7px;font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--text-faint);border:1px solid var(--border);border-radius:4px;padding:0 3px;line-height:1.4;}
+.cm-status-tile .dot{margin-top:4px;}
+.cm-status-tile .lbl{font-size:12px;font-weight:600;}
+.cm-status-tile[data-tone="success"]:hover,.cm-status-tile[data-tone="success"].selected{border-color:var(--success);background:var(--success-soft);}
+.cm-status-tile[data-tone="warning"]:hover,.cm-status-tile[data-tone="warning"].selected{border-color:var(--warning);background:var(--warning-soft);}
+.cm-status-tile[data-tone="info"]:hover,.cm-status-tile[data-tone="info"].selected{border-color:var(--accent);background:var(--accent-soft);}
+.cm-status-tile[data-tone="danger"]:hover,.cm-status-tile[data-tone="danger"].selected{border-color:var(--danger);background:var(--danger-soft);}
+.cm-status-tile[data-tone="neutral"]:hover,.cm-status-tile[data-tone="neutral"].selected{border-color:var(--neutral);background:var(--neutral-soft);}
+
+.cm-field-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media (max-width:560px){.cm-field-pair{grid-template-columns:1fr;}}
+
+.cm-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;}
+.cm-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-muted);border-radius:99px;padding:6px 12px;font-size:11.8px;font-weight:600;cursor:pointer;}
+.cm-chip:hover{background:var(--surface-2);}
+.cm-chip.selected{background:var(--accent);border-color:var(--accent);color:#fff;}
+.cm-date-native{border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;font-family:"IBM Plex Mono",monospace;background:var(--surface);color:var(--text);color-scheme:light dark;}
+
+.cm-queue-rail{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;position:sticky;top:20px;}
+.cm-qr-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);}
+.cm-qr-head .t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);}
+.cm-qr-head .d{font-size:11.5px;color:var(--text-faint);margin-top:2px;}
+.cm-qr-list{list-style:none;margin:0;padding:6px;display:flex;flex-direction:column;gap:2px;max-height:560px;overflow-y:auto;}
+.cm-qr-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;font-size:12.3px;}
+.cm-qr-item .qdot{width:7px;height:7px;border-radius:50%;flex:none;}
+.cm-qr-item .qname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cm-qr-item.current{background:var(--accent-soft);}
+.cm-qr-item.current .qname{color:var(--accent-strong);font-weight:600;}
+.cm-qr-item.done{opacity:0.45;}
+.cm-qr-item.done .qname{text-decoration:line-through;}
+.cm-qr-item.jumpable{cursor:pointer;}
+.cm-qr-item.jumpable:hover{background:var(--surface-2);}
+.cm-qr-item.jumpable:focus-visible{background:var(--surface-2);outline:2px solid var(--accent);outline-offset:-2px;}
+.cm-qr-item .qstatus{font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--text-faint);flex:none;}
+
+.cm-done-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:48px 40px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.cm-done-card .crown{font-size:38px;}
+.cm-done-card h2{margin:0;font-size:22px;}
+.cm-done-card p{margin:0;color:var(--text-muted);font-size:13.5px;max-width:420px;}
+.cm-done-stats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px;}
 </style>
 </head>
 <body>
@@ -689,6 +795,7 @@ td.actions{white-space:nowrap;text-align:right;}
   <div class="view-switch">
     <button class="view-tab active" id="tab-registry" type="button">📋 Реестр</button>
     <button class="view-tab" id="tab-dashboard" type="button">📊 Дашборд</button>
+    <button class="view-tab" id="tab-callmode" type="button">☎️ Обзвон</button>
   </div>
 
   <div id="view-registry">
@@ -762,6 +869,34 @@ td.actions{white-space:nowrap;text-align:right;}
           <tbody id="dash-day-tbody"></tbody>
         </table>
       </div>
+    </div>
+
+  </div>
+
+  <div id="view-callmode" hidden>
+
+    <div class="cm-head">
+      <div>
+        <p class="eyebrow" style="margin:0 0 4px;">Дневная норма — 35 звонков</p>
+        <p class="sub">Очередь — вся база, по приоритету реестра (просроченные и сегодняшние выше)</p>
+      </div>
+      <div class="cm-tally">
+        <div class="n"><span id="cm-tally-done">0</span><span class="of"> / <span id="cm-tally-total">0</span></span></div>
+        <div class="lbl">обзвонено сегодня</div>
+      </div>
+    </div>
+
+    <div class="cm-progress-track"><div class="cm-progress-fill" id="cm-progress-fill" style="width:0%"></div></div>
+
+    <div class="cm-workspace">
+      <div id="cm-focus-wrap"><div class="focus-card" id="cm-focus-card"></div></div>
+      <aside class="cm-queue-rail">
+        <div class="cm-qr-head">
+          <div class="t">Очередь</div>
+          <div class="d" id="cm-qr-sub"></div>
+        </div>
+        <ul class="cm-qr-list" id="cm-qr-list"></ul>
+      </aside>
     </div>
 
   </div>
@@ -894,12 +1029,16 @@ function switchView(v){
   currentView = v;
   document.getElementById('view-registry').hidden = v !== 'registry';
   document.getElementById('view-dashboard').hidden = v !== 'dashboard';
+  document.getElementById('view-callmode').hidden = v !== 'callmode';
   document.getElementById('tab-registry').classList.toggle('active', v === 'registry');
   document.getElementById('tab-dashboard').classList.toggle('active', v === 'dashboard');
+  document.getElementById('tab-callmode').classList.toggle('active', v === 'callmode');
   if(v === 'dashboard') renderDashboard();
+  if(v === 'callmode') renderCallMode();
 }
 document.getElementById('tab-registry').addEventListener('click', ()=>switchView('registry'));
 document.getElementById('tab-dashboard').addEventListener('click', ()=>switchView('dashboard'));
+document.getElementById('tab-callmode').addEventListener('click', ()=>switchView('callmode'));
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1429,6 +1568,369 @@ function renderDashDayPanel(dayStr){
     </tr>`;
   }).join('');
 }
+
+/* ---------- режим обзвона ---------- */
+
+let cmQueue = null;      // рабочая очередь: cmQueue[0] — текущий клиент
+let cmDone = [];         // {client, status}
+let cmTotal = 0;
+let cmSelectedStatus = null;
+let cmSelectedNextDate = null; // dd.mm.yyyy или null
+let cmSelectedContactIdx = 0;
+
+const cmFocusWrap = document.getElementById('cm-focus-wrap');
+let cmFocusCard = document.getElementById('cm-focus-card');
+const cmQrList = document.getElementById('cm-qr-list');
+const cmQrSub = document.getElementById('cm-qr-sub');
+const cmTallyDone = document.getElementById('cm-tally-done');
+const cmTallyTotal = document.getElementById('cm-tally-total');
+const cmProgressFill = document.getElementById('cm-progress-fill');
+
+function telHref(phone){
+  if(!phone) return null;
+  const digits = phone.replace(/[^\d+]/g,'');
+  return digits.length >= 5 ? 'tel:'+digits : null;
+}
+
+function cmBuildQueue(){
+  cmQueue = ALL.slice().sort((a,b)=>{
+    const ra = urgencyRank(a.next_date), rb = urgencyRank(b.next_date);
+    if(ra.tier !== rb.tier) return ra.tier - rb.tier;
+    if(ra.t !== rb.t) return ra.t - rb.t;
+    return (a.order??0) - (b.order??0);
+  });
+  cmDone = [];
+  cmTotal = cmQueue.length;
+  cmTallyTotal.textContent = cmTotal;
+}
+
+function renderCallMode(){
+  if(cmQueue === null) cmBuildQueue();
+  cmRenderFocus();
+}
+
+function cmOffsetDate(days){
+  const d = new Date(TODAY);
+  d.setDate(d.getDate() + days);
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+function cmNextDateChips(){
+  return [
+    {lbl:'Завтра', days:1},
+    {lbl:'+3 дня', days:3},
+    {lbl:'Через неделю', days:7},
+  ];
+}
+
+function cmContactRowHtml(c){
+  const contacts = c.contacts || [];
+  if(!contacts.length){
+    return `<div class="cm-contact-row">
+      <div class="cm-avatar">👤</div>
+      <div class="cm-who"><span class="cname" style="color:var(--text-faint);font-weight:500;">Контактное лицо не указано</span></div>
+    </div>`;
+  }
+  const current = contacts[cmSelectedContactIdx] || contacts[0];
+  const phoneNode = current.phone
+    ? `<a class="cm-phone-btn" href="${telHref(current.phone)}"><span class="ico">☎</span>${escapeHtml(current.phone)}</a>`
+    : `<span class="cm-phone-btn muted">Телефон не указан</span>`;
+  const switchNode = contacts.length > 1 ? `
+    <div class="cm-contact-switch">
+      <button type="button" class="cm-switch-btn" id="cm-switch-btn" aria-label="Выбрать другой контакт" title="Другой контакт этого клиента">▾</button>
+      <div class="cm-switch-menu" id="cm-switch-menu" hidden>
+        ${contacts.map((ct,i)=>`
+          <button type="button" class="cm-switch-item ${i===cmSelectedContactIdx?'active':''}" data-idx="${i}">
+            <span class="csi-name">${escapeHtml(ct.name || 'Без имени')}</span>
+            ${ct.position ? `<span class="csi-pos">${escapeHtml(ct.position)}</span>` : ''}
+          </button>`).join('')}
+      </div>
+    </div>` : '';
+  return `
+    <div class="cm-contact-row">
+      <div class="cm-avatar">👤</div>
+      <div class="cm-who">
+        <span class="cname">${escapeHtml(current.name || 'Без имени')}</span>
+        ${current.position ? `<span class="cpos">${escapeHtml(current.position)}</span>` : ''}
+      </div>
+      <div class="cm-call-group">
+        ${phoneNode}
+        ${switchNode}
+      </div>
+    </div>`;
+}
+
+function cmPositionSwitchMenu(){
+  const btn = document.getElementById('cm-switch-btn');
+  const menu = document.getElementById('cm-switch-menu');
+  if(!btn || !menu) return;
+  const r = btn.getBoundingClientRect();
+  menu.style.top = (r.bottom + 6) + 'px';
+  menu.style.left = 'auto';
+  menu.style.right = (window.innerWidth - r.right) + 'px';
+}
+function cmBindContactSwitch(client){
+  const btn = document.getElementById('cm-switch-btn');
+  const menu = document.getElementById('cm-switch-menu');
+  if(!btn || !menu) return;
+  btn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const willShow = menu.hidden;
+    if(willShow) cmPositionSwitchMenu();
+    menu.hidden = !menu.hidden;
+  });
+  menu.querySelectorAll('.cm-switch-item').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      cmSelectedContactIdx = +item.dataset.idx;
+      document.getElementById('cm-contact-row-wrap').innerHTML = cmContactRowHtml(client);
+      cmBindContactSwitch(client);
+    });
+  });
+}
+document.addEventListener('click', ()=>{
+  const menu = document.getElementById('cm-switch-menu');
+  if(menu) menu.hidden = true;
+});
+
+function cmRenderQueueRail(){
+  const doneRows = cmDone.map(d => `<li class="cm-qr-item done">
+      <span class="qdot" style="background:var(--text-faint)"></span>
+      <span class="qname">${escapeHtml(d.client.name)}</span>
+      <span class="qstatus">${escapeHtml(d.status||'—')}</span>
+    </li>`);
+  const pendingRows = cmQueue.map((c,i) => `<li class="cm-qr-item ${i===0?'current':'jumpable'}" ${i>0?`data-jump-idx="${i}" tabindex="0" role="button" title="Перейти к этому клиенту сейчас"`:''}>
+      <span class="qdot" style="background:var(--accent)"></span>
+      <span class="qname">${escapeHtml(c.name)}</span>
+      <span class="qstatus"></span>
+    </li>`);
+  cmQrList.innerHTML = doneRows.join('') + pendingRows.join('');
+  cmQrSub.textContent = `${cmQueue.length} осталось из ${cmTotal}`;
+
+  cmQrList.querySelectorAll('.cm-qr-item.jumpable').forEach(li=>{
+    li.addEventListener('click', ()=>cmJumpToClient(+li.dataset.jumpIdx));
+    li.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); cmJumpToClient(+li.dataset.jumpIdx); } });
+  });
+}
+function cmJumpToClient(idx){
+  if(idx <= 0 || idx >= cmQueue.length) return;
+  const [c] = cmQueue.splice(idx, 1);
+  cmQueue.unshift(c);
+  cmRenderFocus();
+}
+
+function cmRenderProgress(){
+  cmTallyDone.textContent = cmDone.length;
+  cmProgressFill.style.width = (cmTotal ? (cmDone.length / cmTotal * 100) : 0) + '%';
+}
+
+function cmRenderFocus(){
+  if(cmQueue.length === 0){ cmRenderDone(); return; }
+  const c = cmQueue[0];
+  cmSelectedStatus = null;
+  cmSelectedNextDate = null;
+  const contacts = c.contacts || [];
+  const eff = effectiveContact(c);
+  cmSelectedContactIdx = eff ? Math.max(0, contacts.indexOf(eff)) : 0;
+
+  const historyHtml = (c.date || c.status || c.comment) ? `
+    <div class="cm-history">
+      ${c.date ? `<div class="hitem"><span class="k">Последний звонок</span><span class="v mono">${escapeHtml(c.date)}</span></div>` : ''}
+      ${c.status ? `<div class="hitem"><span class="k">Последний статус</span><span class="badge b-${toneOf(c.status)}"><span class="dot ${toneOf(c.status)}"></span>${escapeHtml(c.status)}</span></div>` : ''}
+      ${c.comment ? `<div class="hitem" style="flex:1 1 220px;"><span class="k">Последний комментарий</span><span class="v">${escapeHtml(c.comment)}</span></div>` : ''}
+    </div>` : '';
+
+  const taskHtml = c.task ? `
+    <div class="cm-history cm-task-box">
+      <div class="hitem"><span class="k">Незакрытая задача</span><span class="v">${escapeHtml(c.task)}</span></div>
+    </div>` : '';
+
+  cmFocusCard.innerHTML = `
+    <div class="fc-head">
+      <div>
+        <h2>${escapeHtml(c.name)}</h2>
+        <div class="meta-line">
+          ${c.inn ? `<span>ИНН ${escapeHtml(c.inn)}</span>` : ''}
+          ${c.inn && c.city ? ' · ' : ''}
+          ${c.city ? `<span>г. ${escapeHtml(c.city)}</span>` : ''}
+        </div>
+      </div>
+      ${c.link ? `<a class="bitrix-link" href="${escapeHtml(c.link)}" target="_blank" rel="noopener">Bitrix24 →</a>` : ''}
+    </div>
+    <div class="fc-body">
+      <div id="cm-contact-row-wrap">${cmContactRowHtml(c)}</div>
+      ${historyHtml}
+      ${taskHtml}
+
+      <div>
+        <p class="section-label">Результат звонка <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-faint);">клавиши 1–5</span></p>
+        <div class="cm-status-grid" id="cm-status-grid">
+          ${STATUS_LIST.map((s,i)=>`
+            <button type="button" class="cm-status-tile" data-tone="${toneOf(s)}" data-status="${escapeHtml(s)}">
+              <span class="key">${i+1}</span>
+              <span class="dot ${toneOf(s)}"></span>
+              <span class="lbl">${escapeHtml(s)}</span>
+            </button>`).join('')}
+        </div>
+      </div>
+
+      <div class="cm-field-pair">
+        <div class="field">
+          <label>Комментарий</label>
+          <textarea id="cm-comment" placeholder="Что сказали, на чём сошлись…"></textarea>
+        </div>
+        <div class="field">
+          <label>Задача на след. раз</label>
+          <textarea id="cm-task" placeholder="Что сделать перед следующим звонком…"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <p class="section-label" style="margin-bottom:8px;">Следующий звонок</p>
+        <div class="cm-chips" id="cm-chips">
+          ${cmNextDateChips().map(ch=>`<button type="button" class="cm-chip" data-days="${ch.days}">${ch.lbl}</button>`).join('')}
+          <button type="button" class="cm-chip" id="cm-chip-custom">Выбрать дату</button>
+          <input type="date" id="cm-date-custom" class="cm-date-native" style="display:none;">
+        </div>
+      </div>
+    </div>
+    <div class="fc-foot">
+      <div class="foot-hint"><span class="kbd">Enter</span> сохранить и следующий · <span class="kbd">→</span> в конец очереди</div>
+      <div class="foot-actions">
+        <button class="btn ghost" id="cm-btn-skip">Пропустить</button>
+        <button class="btn primary" id="cm-btn-save" disabled>Сохранить и следующий →</button>
+      </div>
+    </div>
+  `;
+
+  cmFocusCard.querySelectorAll('.cm-status-tile').forEach(btn=>{
+    btn.addEventListener('click', ()=>cmSelectStatus(btn.dataset.status));
+  });
+  cmBindContactSwitch(c);
+
+  const presetChips = cmFocusCard.querySelectorAll('#cm-chips .cm-chip:not(#cm-chip-custom)');
+  const customChip = document.getElementById('cm-chip-custom');
+  const customInput = document.getElementById('cm-date-custom');
+  function deselectAllChips(){
+    presetChips.forEach(ch=>ch.classList.remove('selected'));
+    customChip.classList.remove('selected');
+    customInput.style.display = 'none';
+  }
+  presetChips.forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const already = chip.classList.contains('selected');
+      deselectAllChips();
+      if(!already){ chip.classList.add('selected'); cmSelectedNextDate = cmOffsetDate(+chip.dataset.days); }
+      else cmSelectedNextDate = null;
+    });
+  });
+  customChip.addEventListener('click', ()=>{
+    const already = customChip.classList.contains('selected');
+    deselectAllChips();
+    if(already){ cmSelectedNextDate = null; return; }
+    customChip.classList.add('selected');
+    customInput.style.display = 'inline-block';
+    customInput.focus();
+    if(customInput.showPicker){ try{ customInput.showPicker(); }catch(e){} }
+  });
+  customInput.addEventListener('change', (e)=>{
+    if(!e.target.value) return;
+    cmSelectedNextDate = isoToRu(e.target.value);
+  });
+
+  document.getElementById('cm-btn-save').addEventListener('click', cmSaveAndNext);
+  document.getElementById('cm-btn-skip').addEventListener('click', cmSkip);
+
+  cmRenderQueueRail();
+  cmRenderProgress();
+}
+
+function cmSelectStatus(status){
+  cmSelectedStatus = status;
+  cmFocusCard.querySelectorAll('.cm-status-tile').forEach(b=>{
+    b.classList.toggle('selected', b.dataset.status === status);
+  });
+  document.getElementById('cm-btn-save').disabled = false;
+}
+
+async function cmSaveAndNext(){
+  if(!cmSelectedStatus) return;
+  const saveBtn = document.getElementById('cm-btn-save');
+  saveBtn.disabled = true; saveBtn.textContent = 'Сохранение…';
+  try{
+    const client = cmQueue[0];
+    const contacts = client.contacts || [];
+    const chosenContact = contacts[cmSelectedContactIdx] || null;
+    const commentVal = document.getElementById('cm-comment').value.trim();
+    const taskVal = document.getElementById('cm-task').value.trim();
+    const payload = JSON.parse(JSON.stringify(client));
+    payload.status = cmSelectedStatus;
+    if(commentVal) payload.comment = commentVal;
+    if(taskVal) payload.task = taskVal;
+    if(cmSelectedNextDate) payload.next_date = cmSelectedNextDate;
+    if(chosenContact) payload.contact = chosenContact.name || null;
+    payload.date = isoToRu(new Date().toISOString().slice(0,10));
+    await apiUpsert(payload);
+    const idx = ALL.findIndex(r=>r.id===payload.id);
+    if(idx!==-1) ALL[idx] = payload;
+    cmQueue.shift();
+    cmDone.push({client: payload, status: cmSelectedStatus});
+    renderStats();
+    renderTable();
+    cmRenderFocus();
+  }catch(e){
+    console.error(e);
+    alert('Не удалось сохранить: ' + (e && e.message ? e.message : e));
+  }finally{
+    saveBtn.disabled = false;
+    if(document.getElementById('cm-btn-save')) document.getElementById('cm-btn-save').textContent = 'Сохранить и следующий →';
+  }
+}
+
+function cmSkip(){
+  if(cmQueue.length <= 1) return;
+  const c = cmQueue.shift();
+  cmQueue.push(c);
+  cmRenderFocus();
+}
+
+function cmRenderDone(){
+  const counts = {};
+  STATUS_LIST.forEach(s=>counts[s]=0);
+  cmDone.forEach(d => { if(counts.hasOwnProperty(d.status)) counts[d.status]++; });
+
+  cmFocusWrap.innerHTML = `
+    <div class="cm-done-card">
+      <div class="crown">👑</div>
+      <h2>Очередь пройдена</h2>
+      <p>${cmTotal} клиентов обработано. Каждый звонок сразу записан в реестр и попадёт на дашборд.</p>
+      <div class="cm-done-stats">
+        ${STATUS_LIST.map(s=>`<div class="stat" style="cursor:default;"><span class="n">${counts[s]}</span><span class="label"><span class="dot ${toneOf(s)}"></span>${escapeHtml(s)}</span></div>`).join('')}
+      </div>
+      <button class="btn ghost" id="cm-btn-restart" style="margin-top:8px;">↺ Собрать очередь заново</button>
+    </div>
+  `;
+  document.getElementById('cm-btn-restart').addEventListener('click', ()=>{
+    cmFocusWrap.innerHTML = '<div class="focus-card" id="cm-focus-card"></div>';
+    cmFocusCard = document.getElementById('cm-focus-card');
+    cmBuildQueue();
+    cmRenderFocus();
+  });
+  cmRenderQueueRail();
+  cmRenderProgress();
+}
+
+document.addEventListener('keydown', (e)=>{
+  if(currentView !== 'callmode') return;
+  if(!cmQueue || cmQueue.length === 0) return;
+  if(document.activeElement && (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT')) return;
+  if(e.key >= '1' && e.key <= '5'){
+    const i = +e.key - 1;
+    if(STATUS_LIST[i]) cmSelectStatus(STATUS_LIST[i]);
+  } else if(e.key === 'Enter'){
+    cmSaveAndNext();
+  } else if(e.key === 'ArrowRight'){
+    cmSkip();
+  }
+});
 
 /* ---------- drawer / edit form ---------- */
 
