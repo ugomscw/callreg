@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
   --bg:#f3f5f8;
@@ -906,17 +907,12 @@ td.actions{white-space:nowrap;text-align:right;}
 <div class="overlay" id="auth-overlay" style="justify-content:center;align-items:center;" hidden>
   <div class="drawer" style="width:min(360px,92vw);height:auto;border-radius:14px;">
     <div class="drawer-head">
-      <h2>🔒 Код доступа</h2>
+      <h2>🔒 Вход</h2>
     </div>
-    <div class="drawer-body">
-      <div class="field">
-        <label>Введите код, чтобы открыть реестр</label>
-        <input type="password" id="auth-input" placeholder="XXXX-XXXX-XXXX" autocomplete="off">
-      </div>
+    <div class="drawer-body" style="align-items:center;text-align:center;">
+      <p style="margin:0;font-size:12.5px;color:var(--text-muted);">Войдите через Google-аккаунт, у которого есть доступ к реестру</p>
+      <div id="g_id_signin"></div>
       <p id="auth-error" style="color:var(--danger);font-size:12.5px;margin:0;min-height:16px;"></p>
-    </div>
-    <div class="drawer-foot" style="justify-content:flex-end;">
-      <button class="btn primary" id="auth-submit">Войти</button>
     </div>
   </div>
 </div>
@@ -1169,47 +1165,70 @@ function getRows(){
   return rows;
 }
 
-const AUTH_KEY_STORAGE = 'callRegistryAccessKey';
-function getAuthKey(){
-  try{ return localStorage.getItem(AUTH_KEY_STORAGE) || ''; }catch(e){ return ''; }
+const GOOGLE_CLIENT_ID = '469218004281-j1ug98rov34e0f9i88rktpdud5vdk84k.apps.googleusercontent.com';
+const ID_TOKEN_STORAGE = 'callRegistryIdToken';
+let idToken = null;
+try{ idToken = sessionStorage.getItem(ID_TOKEN_STORAGE) || null; }catch(e){}
+function setIdToken(t){
+  idToken = t;
+  try{ sessionStorage.setItem(ID_TOKEN_STORAGE, t); }catch(e){}
 }
-function setAuthKey(k){
-  try{ localStorage.setItem(AUTH_KEY_STORAGE, k); }catch(e){}
+function clearIdToken(){
+  idToken = null;
+  try{ sessionStorage.removeItem(ID_TOKEN_STORAGE); }catch(e){}
 }
 function showAuthGate(message){
   document.getElementById('auth-error').textContent = message || '';
   document.getElementById('auth-overlay').hidden = false;
-  document.getElementById('auth-input').focus();
+  initGoogleSignInWhenReady();
 }
 function hideAuthGate(){
   document.getElementById('auth-overlay').hidden = true;
 }
 function checkAuthResponse_(json){
   if(json && json.error === 'unauthorized'){
-    showAuthGate('Неверный код доступа');
+    clearIdToken();
+    showAuthGate('Нет доступа с этим аккаунтом — войдите заново');
     throw new Error('unauthorized');
   }
 }
-function apiUrlWithKey_(){
+async function handleGoogleCredential(response){
+  setIdToken(response.credential);
+  hideAuthGate();
+  await refresh(false);
+}
+function initGoogleSignInWhenReady(){
+  if(window.google && google.accounts && google.accounts.id){
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential });
+    const el = document.getElementById('g_id_signin');
+    if(el && !el.dataset.rendered){
+      google.accounts.id.renderButton(el, {theme:'outline', size:'large', text:'signin_with', locale:'ru'});
+      el.dataset.rendered = '1';
+    }
+  } else {
+    setTimeout(initGoogleSignInWhenReady, 150);
+  }
+}
+function apiUrlWithToken_(){
   const sep = API_URL.indexOf('?') === -1 ? '?' : '&';
-  return API_URL + sep + 'key=' + encodeURIComponent(getAuthKey());
+  return API_URL + sep + 'id_token=' + encodeURIComponent(idToken || '');
 }
 async function apiList(){
-  const res = await fetch(apiUrlWithKey_(), {method:'GET'});
+  const res = await fetch(apiUrlWithToken_(), {method:'GET'});
   const json = await res.json();
   checkAuthResponse_(json);
   if(!json.ok) throw new Error(json.error || 'list_failed');
   return {clients: json.clients, history: json.history || []};
 }
 async function apiUpsert(obj){
-  const res = await fetch(API_URL, {method:'POST', body: JSON.stringify({action:'upsert', data: obj, key: getAuthKey()})});
+  const res = await fetch(API_URL, {method:'POST', body: JSON.stringify({action:'upsert', data: obj, id_token: idToken})});
   const json = await res.json();
   checkAuthResponse_(json);
   if(!json.ok) throw new Error(json.error || 'upsert_failed');
   return json;
 }
 async function apiDelete(id){
-  const res = await fetch(API_URL, {method:'POST', body: JSON.stringify({action:'delete', id, key: getAuthKey()})});
+  const res = await fetch(API_URL, {method:'POST', body: JSON.stringify({action:'delete', id, id_token: idToken})});
   const json = await res.json();
   checkAuthResponse_(json);
   if(!json.ok) throw new Error(json.error || 'delete_failed');
@@ -2210,20 +2229,11 @@ async function refresh(silent){
   }catch(e){
     console.error(e);
     if(e && e.message === 'unauthorized'){
-      setSync('off', 'Нужен код доступа');
+      setSync('off', 'Нужен вход через Google');
     } else {
       setSync('off', 'Нет связи с таблицей');
     }
   }
-}
-
-document.getElementById('auth-submit').addEventListener('click', submitAuthKey);
-document.getElementById('auth-input').addEventListener('keydown', e=>{ if(e.key==='Enter') submitAuthKey(); });
-async function submitAuthKey(){
-  const val = document.getElementById('auth-input').value.trim();
-  if(!val) return;
-  setAuthKey(val);
-  await refresh(false);
 }
 
 async function boot(){
@@ -2232,9 +2242,9 @@ async function boot(){
     footerNote.textContent = 'Укажите API_URL в начале файла — адрес развёрнутого Apps Script Web App.';
     return;
   }
-  if(!getAuthKey()){
+  if(!idToken){
     showAuthGate('');
-    setSync('off', 'Нужен код доступа');
+    setSync('off', 'Нужен вход через Google');
     return;
   }
   await refresh(false);
